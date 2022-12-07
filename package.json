@@ -18,17 +18,29 @@
     "url": "git+https://github.com/trevorr/async-cleanup.git"
   },
   "license": "ISC",
-  "author": "Trevor Robinson",
+  "author": "SCG82",
   "files": [
     "dist"
   ],
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
   "scripts": {
-    "build": "rm -rf dist && tsc --project tsconfig.build.json",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc --project tsconfig.build.json",
+    "build:cjs": "tsc --project tsconfig.cjs.json",
+    "clean": "rm -rf dist",
     "examples": "concurrently 'ts-node examples/readme.ts' 'ts-node examples/readme.ts' 'ts-node examples/readme.ts'",
-    "lint": "eslint src",
+    "lint": "npm run lint:ts && npm run lint:eslint",
     "lint:ci": "eslint src --format junit --output-file test-results/eslint/eslint.xml",
+    "lint:eslint": "eslint src",
+    "lint:ts": "tsc --noEmit",
     "prepare": "npm run build",
     "prepublishOnly": "npm run test && npm run lint",
     "prettier": "prettier --write src",
@@ -42,6 +54,8 @@
     "@typescript-eslint/parser": "^5.33.0",
     "concurrently": "^7.3.0",
     "eslint": "^8.21.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
     "jest": "^28.1.3",
     "jest-junit": "^14.0.0",
     "prettier": "^2.7.1",
@@ -54,6 +68,9 @@
     "outputName": "junit.xml"
   },
   "prettier": {
-    "semi": true
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 4,
+    "trailingComma": "all"
   }
 }

@@ -2,12 +2,12 @@
   "compilerOptions": {
     "declaration": true,
     "esModuleInterop": true,
-    "lib": ["es6"],
-    "module": "commonjs",
-    "outDir": "dist",
+    "lib": ["es2022"],
+    "module": "node16",
+    "outDir": "dist/esm",
     "sourceMap": true,
     "strict": true,
-    "target": "es6"
+    "target": "es2022"
   },
   "include": ["src", "examples"]
 }

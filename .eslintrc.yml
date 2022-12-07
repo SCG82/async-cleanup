@@ -5,9 +5,15 @@ parserOptions:
     - ./tsconfig.eslint.json
 plugins:
   - "@typescript-eslint"
+  - prettier
 extends:
   - eslint:recommended
   - plugin:@typescript-eslint/recommended
   - plugin:@typescript-eslint/recommended-requiring-type-checking
+  - prettier
+rules:
+  "@typescript-eslint/consistent-type-imports": "warn"
+  eqeqeq: ["error", "always"]
+  prettier/prettier: "warn"
 env:
   node: true
