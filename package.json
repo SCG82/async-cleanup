@@ -33,7 +33,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
-    "build:esm": "tsc --project tsconfig.build.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "clean": "rm -rf dist",
     "examples": "concurrently 'ts-node examples/readme.ts' 'ts-node examples/readme.ts' 'ts-node examples/readme.ts'",

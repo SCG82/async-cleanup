@@ -1,11 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2021",
-    "lib": ["es2021"],
+    "lib": ["es2022"],
     "noEmit": false,
-    "outDir": "dist/cjs"
+    "outDir": "dist/esm"
   },
   "exclude": ["src/**/*.test.ts", "examples"]
 }

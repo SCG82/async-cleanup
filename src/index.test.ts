@@ -32,7 +32,7 @@ function mockProcessOn(): {
 
 function mockProcessExit(): {
     exitPromise: Promise<void>
-    processExit: jest.SpyInstance<never, [code?: number]>
+    processExit: jest.SpyInstance<never, [code?: number | undefined]>
 } {
     let resolveExit: (value?: void) => void
     const exitPromise = new Promise<void>((resolve) => (resolveExit = resolve))
@@ -44,7 +44,10 @@ function mockProcessExit(): {
 
 function mockProcessKill(): {
     killPromise: Promise<void>
-    processKill: jest.SpyInstance<true, [pid: number, signal?: string | number]>
+    processKill: jest.SpyInstance<
+        true,
+        [pid: number, signal?: string | number | undefined]
+    >
 } {
     let resolveKill: (value?: void) => void
     const killPromise = new Promise<void>((resolve) => (resolveKill = resolve))
@@ -69,7 +72,7 @@ test('hooks beforeExit without exit code', async () => {
     await exitPromise
     expect(processExit).toHaveBeenCalledWith(0)
     expect(consoleLog).toHaveBeenCalled()
-    expect(consoleLog.mock.calls[0][0]).toBe(
+    expect(consoleLog.mock.calls[0]?.[0]).toBe(
         'Exiting with code undefined due to empty event loop',
     )
 })
@@ -90,7 +93,7 @@ test('hooks beforeExit with exit code', async () => {
     await exitPromise
     expect(processExit).toHaveBeenCalledWith(exitCode)
     expect(consoleLog).toHaveBeenCalled()
-    expect(consoleLog.mock.calls[0][0]).toBe(
+    expect(consoleLog.mock.calls[0]?.[0]).toBe(
         'Exiting with code 42 due to empty event loop',
     )
 })
@@ -113,7 +116,7 @@ test('hooks uncaughtException', async () => {
     await exitPromise
     expect(processExit).toHaveBeenCalledWith(1)
     expect(consoleError).toHaveBeenCalled()
-    expect(consoleError.mock.calls[0][0]).toBe(
+    expect(consoleError.mock.calls[0]?.[0]).toBe(
         'Exiting with code 1 due to uncaught exception',
     )
 })
@@ -133,7 +136,7 @@ test('hooks SIGINT', async () => {
     await killPromise
     expect(processKill).toHaveBeenCalledWith(process.pid, 'SIGINT')
     expect(consoleLog).toHaveBeenCalled()
-    expect(consoleLog.mock.calls[0][0]).toBe('Exiting due to signal SIGINT')
+    expect(consoleLog.mock.calls[0]?.[0]).toBe('Exiting due to signal SIGINT')
 })
 
 test('removeCleanupListener', async () => {
@@ -171,7 +174,7 @@ test('async listener', async () => {
     await exitPromise
     expect(processExit).toHaveBeenCalledWith(exitCode)
     expect(consoleLog).toHaveBeenCalled()
-    expect(consoleLog.mock.calls[0][0]).toBe(
+    expect(consoleLog.mock.calls[0]?.[0]).toBe(
         'Exiting with code 0 due to empty event loop',
     )
 })
@@ -195,7 +198,7 @@ test('multiple listeners', async () => {
     await exitPromise
     expect(processExit).toHaveBeenCalledWith(exitCode)
     expect(consoleLog).toHaveBeenCalled()
-    expect(consoleLog.mock.calls[0][0]).toBe(
+    expect(consoleLog.mock.calls[0]?.[0]).toBe(
         'Exiting with code 0 due to empty event loop',
     )
 })
@@ -222,11 +225,11 @@ test('uncaught exception in listener', async () => {
     await exitPromise
     expect(processExit).toHaveBeenCalledWith(exitCode)
     expect(consoleLog).toHaveBeenCalled()
-    expect(consoleLog.mock.calls[0][0]).toBe(
+    expect(consoleLog.mock.calls[0]?.[0]).toBe(
         'Exiting with code 0 due to empty event loop',
     )
     expect(consoleError).toHaveBeenCalled()
-    expect(consoleError.mock.calls[0][0]).toBe(
+    expect(consoleError.mock.calls[0]?.[0]).toBe(
         'Uncaught exception during cleanup',
     )
 })
@@ -253,11 +256,11 @@ test('unhandled rejection in listener', async () => {
     await exitPromise
     expect(processExit).toHaveBeenCalledWith(exitCode)
     expect(consoleLog).toHaveBeenCalled()
-    expect(consoleLog.mock.calls[0][0]).toBe(
+    expect(consoleLog.mock.calls[0]?.[0]).toBe(
         'Exiting with code 0 due to empty event loop',
     )
     expect(consoleError).toHaveBeenCalled()
-    expect(consoleError.mock.calls[0][0]).toBe(
+    expect(consoleError.mock.calls[0]?.[0]).toBe(
         'Unhandled rejection during cleanup',
     )
 })
