@@ -35,7 +35,12 @@ export function addCleanupListener(listener: CleanupListener): void {
 /** Removes an existing cleanup listener, and returns whether the listener was registered. */
 export function removeCleanupListener(listener: CleanupListener): boolean {
     if (!cleanupListeners) return false
-    return cleanupListeners.delete(listener)
+    const wasRegistered = cleanupListeners.delete(listener)
+    if (cleanupListeners.size === 0) {
+        uninstallExitListeners()
+        cleanupListeners = undefined
+    }
+    return wasRegistered
 }
 
 /** Executes all cleanup listeners and then exits the process. Call this instead of `process.exit` to ensure all listeners are fully executed. */
