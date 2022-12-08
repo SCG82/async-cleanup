@@ -1,6 +1,6 @@
 {
   "name": "async-cleanup",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Asynchronous process cleanup for Node.js and Typescript",
   "keywords": [
     "async",
@@ -18,7 +18,7 @@
     "url": "git+https://github.com/trevorr/async-cleanup.git"
   },
   "license": "ISC",
-  "author": "SCG82",
+  "author": "Trevor Robinson",
   "files": [
     "dist"
   ],
