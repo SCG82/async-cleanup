@@ -1,3 +1,5 @@
+import process from 'node:process'
+
 /**
  * Listenable signals that terminate the process by default
  * (except SIGQUIT, which generates a core dump and should not trigger cleanup)
@@ -95,14 +97,22 @@ function signalListener(signal: ExitSignal): void {
     void killAfterCleanup(signal)
 }
 
+function pm2ClusterShutdownListener(message: string): void {
+    if (message !== 'shutdown') return
+    console.log('Exiting due to PM2 cluster shutdown')
+    void killAfterCleanup('SIGTERM')
+}
+
 function installExitListeners(): void {
     process.on('beforeExit', beforeExitListener)
+    process.on('message', pm2ClusterShutdownListener)
     process.on('uncaughtException', uncaughtExceptionListener)
     listenedSignals.forEach((signal) => process.on(signal, signalListener))
 }
 
 function uninstallExitListeners(): void {
     process.removeListener('beforeExit', beforeExitListener)
+    process.removeListener('message', pm2ClusterShutdownListener)
     process.removeListener('uncaughtException', uncaughtExceptionListener)
     listenedSignals.forEach((signal) =>
         process.removeListener(signal, signalListener),
