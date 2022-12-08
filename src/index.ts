@@ -1,3 +1,20 @@
+/**
+ * Listenable signals that terminate the process by default
+ * (except SIGQUIT, which generates a core dump and should not trigger cleanup)
+ * See https://nodejs.org/api/process.html#signal-events
+ */
+const listenedSignals = [
+    'SIGBREAK', // Ctrl-Break on Windows
+    'SIGHUP', // Parent terminal closed
+    'SIGINT', // Terminal interrupt, usually by Ctrl-C
+    'SIGTERM', // Graceful termination
+    'SIGUSR2', // Used by Nodemon
+] as const
+
+/** Signals that can be listened for. */
+type ListenedSignals = typeof listenedSignals[number]
+/** Signals that can terminate the process. */
+export type ExitSignal = ListenedSignals | 'SIGKILL' | 'SIGQUIT' | 'SIGSTOP'
 /** A possibly asynchronous function invoked with the process is about to exit. */
 export type CleanupListener = () => void | Promise<void>
 
@@ -25,13 +42,6 @@ export async function exitAfterCleanup(code = 0): Promise<never> {
     process.exit(code)
 }
 
-/** Signals that can terminate the process. */
-export type ExitSignal =
-    | typeof listenedSignals[number]
-    | 'SIGKILL'
-    | 'SIGQUIT'
-    | 'SIGSTOP'
-
 /** Executes all cleanup listeners and then kills the process with the given signal. */
 export async function killAfterCleanup(signal: ExitSignal): Promise<void> {
     await executeCleanupListeners()
@@ -39,34 +49,33 @@ export async function killAfterCleanup(signal: ExitSignal): Promise<void> {
 }
 
 async function executeCleanupListeners(): Promise<void> {
-    if (cleanupListeners) {
-        // Remove exit listeners to restore normal event handling
-        uninstallExitListeners()
+    if (!cleanupListeners) return
 
-        // Clear cleanup listeners to reset state for testing
-        const listeners = cleanupListeners
-        cleanupListeners = undefined
+    // Remove exit listeners to restore normal event handling
+    uninstallExitListeners()
 
-        // Call listeners in order added with async listeners running concurrently
-        const promises: Promise<void>[] = []
-        for (const listener of listeners) {
-            try {
-                const promise = listener()
-                if (promise) promises.push(promise)
-            } catch (err) {
-                console.error('Uncaught exception during cleanup', err)
+    // Clear cleanup listeners to reset state for testing
+    const listeners = cleanupListeners
+    cleanupListeners = undefined
+
+    // Call listeners in order added with async listeners running concurrently
+    const promises: Promise<void>[] = []
+    for (const listener of listeners) {
+        try {
+            const promise = listener()
+            if (promise instanceof Promise) {
+                promises.push(promise)
             }
+        } catch (err) {
+            console.error('Uncaught exception during cleanup', err)
         }
+    }
 
-        // Wait for all listeners to complete and log any rejections
-        const results = await Promise.allSettled(promises)
-        for (const result of results) {
-            if (result.status === 'rejected') {
-                console.error(
-                    'Unhandled rejection during cleanup',
-                    result.reason,
-                )
-            }
+    // Wait for all listeners to complete and log any rejections
+    const results = await Promise.allSettled(promises)
+    for (const result of results) {
+        if (result.status === 'rejected') {
+            console.error('Unhandled rejection during cleanup', result.reason)
         }
     }
 }
@@ -85,17 +94,6 @@ function signalListener(signal: ExitSignal): void {
     console.log(`Exiting due to signal ${signal}`)
     void killAfterCleanup(signal)
 }
-
-// Listenable signals that terminate the process by default
-// (except SIGQUIT, which generates a core dump and should not trigger cleanup)
-// See https://nodejs.org/api/process.html#signal-events
-const listenedSignals = [
-    'SIGBREAK', // Ctrl-Break on Windows
-    'SIGHUP', // Parent terminal closed
-    'SIGINT', // Terminal interrupt, usually by Ctrl-C
-    'SIGTERM', // Graceful termination
-    'SIGUSR2', // Used by Nodemon
-] as const
 
 function installExitListeners(): void {
     process.on('beforeExit', beforeExitListener)
